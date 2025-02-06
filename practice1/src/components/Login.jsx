@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../actions/authActions";
 
 const Login = () => {
@@ -49,6 +49,8 @@ const Login = () => {
       <button style={{ margin: "5px", width: "11rem" }} type="submit">
         Login
       </button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {authError && <p style={{ color: "red" }}>{authError}</p>}
     </form>
   );
 };
