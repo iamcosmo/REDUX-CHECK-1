@@ -1,55 +1,46 @@
-// Async Action for Login
+import axiosInstance from '../config/axiosConfig';
+import { LOGIN_SUCCESS, LOGOUT, SIGNUP_SUCCESS } from './actionTypes';
+
+// Login Action
 export const login = (credentials) => async (dispatch) => {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      localStorage.setItem('token', data.token); // Store token in local storage
-      dispatch(loginSuccess(data.user));
-    } else {
-      console.error(data.message);
-    }
-  };
-  
-  // Async Action for Signup
-  export const signup = (userData) => async (dispatch) => {
-    const response = await fetch('http://localhost:5000/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      localStorage.setItem('token', data.token); // Store token in local storage
-      dispatch(signupSuccess(data.user));
-    } else {
-      console.error(data.message);
-    }
-  };
-  
-  // Logout Action
-  export const logout = () => (dispatch) => {
-    localStorage.removeItem('token'); // Remove token from local storage
-    dispatch(logout());
-  };
-  
-  // Fetch Authenticated User Data
-  export const fetchUser = () => async (dispatch) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        dispatch(loginSuccess(data.user));
-      } else {
-        console.error(data.message);
-      }
-    }
-  };
+  try {
+    const response = await axiosInstance.post('/auth/login', credentials);
+    const { user, token } = response.data;
+
+    localStorage.setItem('token', token); // Store token in local storage
+    dispatch({ type: LOGIN_SUCCESS, payload: user });
+  } catch (error) {
+    console.error(error.response?.data?.message || 'Login failed');
+  }
+};
+
+// Signup Action
+export const signup = (userData) => async (dispatch) => {
+  try {
+    const response = await axiosInstance.post('/auth/signup', userData);
+    const { user, token } = response.data;
+
+    localStorage.setItem('token', token); // Store token in local storage
+    dispatch({ type: SIGNUP_SUCCESS, payload: user });
+  } catch (error) {
+    console.error(error.response?.data?.message || 'Signup failed');
+  }
+};
+
+// Logout Action
+export const logout = () => (dispatch) => {
+  localStorage.removeItem('token'); // Remove token from local storage
+  dispatch({ type: LOGOUT });
+};
+
+// Fetch Authenticated User Data
+export const fetchUser = () => async (dispatch) => {
+  try {
+    const response = await axiosInstance.get('/auth/me');
+    const { user } = response.data;
+
+    dispatch({ type: LOGIN_SUCCESS, payload: user });
+  } catch (error) {
+    console.error(error.response?.data?.message || 'Failed to fetch user data');
+  }
+};
