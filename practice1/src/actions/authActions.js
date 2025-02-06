@@ -1,26 +1,55 @@
-import { loginSuccess, signupSuccess , logout } from '../reducers/authReducers';
-
 // Async Action for Login
 export const login = (credentials) => async (dispatch) => {
-  // Simulate an API call
-  const response = await fetch('/api/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-  });
-  const user = await response.json();
-  dispatch(loginSuccess(user));
-};
-
-// Async Action for Signup
-export const signup = (userData) => async (dispatch) => {
-  // Simulate an API call
-  const response = await fetch('/api/signup', {
-    method: 'POST',
-    body: JSON.stringify(userData),
-  });
-  const user = await response.json();
-  dispatch(signupSuccess(user));
-};
-
-// Export the logout action (if needed)
-export { logout };
+    const response = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      localStorage.setItem('token', data.token); // Store token in local storage
+      dispatch(loginSuccess(data.user));
+    } else {
+      console.error(data.message);
+    }
+  };
+  
+  // Async Action for Signup
+  export const signup = (userData) => async (dispatch) => {
+    const response = await fetch('http://localhost:5000/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      localStorage.setItem('token', data.token); // Store token in local storage
+      dispatch(signupSuccess(data.user));
+    } else {
+      console.error(data.message);
+    }
+  };
+  
+  // Logout Action
+  export const logout = () => (dispatch) => {
+    localStorage.removeItem('token'); // Remove token from local storage
+    dispatch(logout());
+  };
+  
+  // Fetch Authenticated User Data
+  export const fetchUser = () => async (dispatch) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const response = await fetch('http://localhost:5000/api/auth/me', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        dispatch(loginSuccess(data.user));
+      } else {
+        console.error(data.message);
+      }
+    }
+  };
